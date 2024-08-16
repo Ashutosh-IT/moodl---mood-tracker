@@ -1,5 +1,10 @@
-import React from 'react'
+"use client"
+
+import React, {useState} from 'react'
 import { gradients,baseRating } from '@/utils/gradients';
+import { Fugaz_One } from 'next/font/google';
+const fugaz = Fugaz_One({ subsets: ["latin"], weight:['400'] });
+
 
 const months = {
   "January"   : "Jan",
@@ -16,6 +21,8 @@ const months = {
   "December"  : "Dec"
 };
 
+const monthsArr = Object.keys(months);
+
 const now = new Date();
 const dayList = [
   'Sunday',
@@ -27,20 +34,47 @@ const dayList = [
   'Saturday'
 ];
 
-const data = {
-  "15": 2, "16": 4, "17": 1, "18": 3, "19": 5,
-  "20": 2, "21": 4, "22": 1, "23": 3, "24": 5,
-}
 
 export default function Calender(props) {
 
-  const {demo} = props
+  const {demo, completeData, handleSetMood} = props
 
-  const year = 2024
-  const month = "July"
-  const monthNow = new Date(year,Object.keys(months).indexOf(month),1)
+  
+
+  const now = new Date()
+  const currMonth = now.getMonth();
+  const [selectedMonth, setSelectedMonth] = useState(Object.keys(months)[currMonth])
+  const [selectedYear, setSelectedYear] = useState(now.getFullYear())
+
+  const numericMonth = Object.keys(months).indexOf(selectedMonth);
+
+  const data = completeData?.[selectedYear]?.[numericMonth] || {}
+
+  function handleIncrementMonth(val){
+    if(numericMonth + val < 0){
+      // set month value = 11 and decrement year
+      setSelectedYear(curr => curr-1)
+      setSelectedMonth(monthsArr[monthsArr.length-1])
+    }
+    else if(numericMonth + val > 11){
+      // set month value to 0 and increment year
+      setSelectedYear(curr => curr+1)
+      setSelectedMonth(monthsArr[0])
+    }
+    else{
+      setSelectedMonth(monthsArr[numericMonth + val])
+    }
+  }
+
+
+
+  
+
+  // const year = 2024
+  // const month = "July"
+  const monthNow = new Date(selectedYear,Object.keys(months).indexOf(selectedMonth),1)
   const firstDayOfMonth = monthNow.getDay()
-  const daysInMonth = new Date(year,Object.keys(months).indexOf(month)+1,0).getDate()
+  const daysInMonth = new Date(selectedYear,Object.keys(months).indexOf(selectedMonth)+1,0).getDate()
 
 
   const daysToDisplay = firstDayOfMonth + daysInMonth
@@ -48,6 +82,16 @@ export default function Calender(props) {
 
 
   return (
+    <div className='flex flex-col gap-2'>
+      <div className='grid grid-cols-5 gap-4'>
+        <button onClick={()=>{
+          handleIncrementMonth(-1)
+        }} className='mr-auto text-indigo-400 text-lg sm:text-xl duration-200 hover:opacity-60'><i class="fa-solid fa-circle-chevron-left"></i></button>
+        <p className={'text-center capitalize col-span-3 textGradient whitespace-nowrap '+ fugaz.className}>{selectedMonth}, {selectedYear}</p>
+        <button onClick={()=>{
+          handleIncrementMonth(+1)
+        }} className='ml-auto text-indigo-400 text-lg sm:text-xl duration-200 hover:opacity-60'><i class="fa-solid fa-circle-chevron-right"></i></button>
+      </div>
     <div className='flex flex-col overflow-hidden gap-1 py-4 sm:py-6 md:py-10'>
       {[...Array(numRows).keys()].map((row,index)=>{
         return (
@@ -80,6 +124,7 @@ export default function Calender(props) {
         )
       })}
          
+    </div>
     </div>
   )
 }
